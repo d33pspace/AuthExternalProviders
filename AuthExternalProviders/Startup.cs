@@ -12,6 +12,8 @@ using Microsoft.Extensions.Logging;
 using AuthExternalProviders.Data;
 using AuthExternalProviders.Models;
 using AuthExternalProviders.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Rewrite;
 
 namespace AuthExternalProviders
 {
@@ -47,7 +49,10 @@ namespace AuthExternalProviders
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            services.AddMvc();
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(new RequireHttpsAttribute());
+            });
 
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();
@@ -59,6 +64,10 @@ namespace AuthExternalProviders
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
+
+            // TODO: Test URL redirection on deployed app.
+            var options = new RewriteOptions()
+                .AddRedirectToHttps();
 
             if (env.IsDevelopment())
             {
